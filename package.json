@@ -1,0 +1,25 @@
+{
+  "name": "fnux",
+  "version": "0.0.1",
+  "description": "Functional Flux",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Grandrath/fnux.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Grandrath/fnux/issues"
+  },
+  "homepage": "https://github.com/Grandrath/fnux#readme",
+  "keywords": [
+    "reactjs",
+    "flux",
+    "functional",
+    "immutable"
+  ],
+  "author": "Martin Grandrath <m.grandrath@gmail.com>",
+  "license": "MIT"
+}
