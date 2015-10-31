@@ -1,5 +1,12 @@
 # fnux - Functional Flux
 
+## Installation
+
+```sh
+$ npm install fnux
+```
+
+
 ## Usage example
 
 ```javascript
