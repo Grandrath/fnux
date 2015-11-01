@@ -1,8 +1,18 @@
 import {is, Map} from "immutable";
 import createApp from "./create_app";
 
+const {isFrozen} = Object;
+
 function getState(app) {
-  return app.queryState(context => context.state);
+  return getQueryContext(app).state;
+}
+
+function getQueryContext(app) {
+  return app.queryState(context => context);
+}
+
+function getIntentContext(app) {
+  return app.invokeIntent(context => context);
 }
 
 describe("app", function () {
@@ -43,10 +53,41 @@ describe("app", function () {
       expect(app.queryState(query, {name: "Fred"})).to.equal("Fred");
     });
 
-    it("should pass immutable queryContext to query", function () {
+    describe("queryContext", function () {
+      it("should be immutable", function () {
+        const app = createApp();
+        const queryContext = getQueryContext(app);
+        expect(isFrozen(queryContext)).to.equal(true);
+      });
+    });
+  });
+
+  describe("invokeIntent", function () {
+    it("should return the intent's return value", function () {
       const app = createApp();
-      app.queryState(function (context) {
-        expect(Object.isFrozen(context)).to.equal(true);
+      const intent = () => "some return value";
+      expect(app.invokeIntent(intent)).to.equal("some return value");
+    });
+
+    it("should pass argument object to intent", function () {
+      const app = createApp();
+      const intent = (context, args) => args.name;
+      expect(app.invokeIntent(intent, {name: "Fred"})).to.equal("Fred");
+    });
+
+    describe("intentContext", function () {
+      it("should be immutable", function () {
+        const app = createApp();
+        const intentContext = getIntentContext(app);
+        expect(isFrozen(intentContext)).to.equal(true);
+      });
+
+      describe("queryState", function () {
+        it("should be app.queryState", function () {
+          const app = createApp();
+          const intentContext = getIntentContext(app);
+          expect(intentContext.queryState).to.equal(app.queryState);
+        });
       });
     });
   });

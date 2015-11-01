@@ -9,13 +9,22 @@ export default function createApp(options = {}) {
     return query(queryContext, args);
   }
 
+  function invokeIntent(intent, args) {
+    return intent(intentContext, args);
+  }
+
   const queryContext = freeze({
     get state() {
       return state;
     }
   });
 
-  return {
+  const intentContext = freeze({
     queryState
+  });
+
+  return {
+    queryState,
+    invokeIntent
   };
 }
