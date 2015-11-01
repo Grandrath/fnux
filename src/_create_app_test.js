@@ -1,3 +1,4 @@
+import {spy} from "sinon";
 import {is, Map} from "immutable";
 import createApp from "./create_app";
 
@@ -87,6 +88,36 @@ describe("app", function () {
           const app = createApp();
           const intentContext = getIntentContext(app);
           expect(intentContext.queryState).to.equal(app.queryState);
+        });
+      });
+
+      describe("updateState", function () {
+        const getValue = context => context.state.get("value");
+        const setValue = (context, {value}) => context.state.set("value", value);
+        const intent = (context, {value}) => context.updateState(setValue, {value});
+
+        it("should apply a transition to the state", function () {
+          const app = createApp();
+          app.invokeIntent(intent, {value: "some value"});
+          expect(app.queryState(getValue)).to.equal("some value");
+        });
+
+        it("should notify subscribers when state changes", function () {
+          const app = createApp();
+          const subscriber = spy();
+          app.subscribe(subscriber);
+          app.invokeIntent(intent, {value: "some value"});
+          expect(subscriber).to.have.been.called;
+        });
+
+        it("should not notify subscribers when state does not change", function () {
+          const app = createApp({
+            initialState: {value: "some value"}
+          });
+          const subscriber = spy();
+          app.subscribe(subscriber);
+          app.invokeIntent(intent, {value: "some value"});
+          expect(subscriber).not.to.have.been.called;
         });
       });
     });

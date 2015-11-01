@@ -1,12 +1,27 @@
-import {fromJS} from "immutable";
+import {EventEmitter} from "events";
+import {is, fromJS} from "immutable";
 
 export default function createApp(options = {}) {
   let state = fromJS(options.initialState || {});
 
   const {freeze} = Object;
+  const eventEmitter = new EventEmitter();
+
+  function subscribe(subscriber) {
+    eventEmitter.on("change", subscriber);
+  }
 
   function queryState(query, args) {
     return query(queryContext, args);
+  }
+
+  function updateState(transition, args) {
+    const nextState = transition({state}, args);
+
+    if (!is(nextState, state)) {
+      state = nextState;
+      eventEmitter.emit("change");
+    }
   }
 
   function invokeIntent(intent, args) {
@@ -20,10 +35,12 @@ export default function createApp(options = {}) {
   });
 
   const intentContext = freeze({
-    queryState
+    queryState,
+    updateState
   });
 
   return {
+    subscribe,
     queryState,
     invokeIntent
   };
