@@ -4,7 +4,7 @@
   "description": "Functional Flux",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --compilers js:babel-core/register --require build/test_init.js src"
   },
   "repository": {
     "type": "git",
