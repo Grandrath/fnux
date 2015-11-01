@@ -17,6 +17,11 @@ function getIntentContext(app) {
 }
 
 describe("app", function () {
+  it("should be immutable", function () {
+    const app = createApp();
+    expect(isFrozen(app)).to.equal(true);
+  });
+
   it("should have an empty Map as initial state", function () {
     const app = createApp();
     const initialState = getState(app);
