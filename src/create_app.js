@@ -1,8 +1,10 @@
-import {Map} from "immutable";
+import {fromJS} from "immutable";
 
-export default function createApp() {
-  function queryState() {
-    return Map();
+export default function createApp(options = {}) {
+  let state = fromJS(options.initialState || {});
+
+  function queryState(query, args) {
+    return query({state}, args);
   }
 
   return {
