@@ -2,4 +2,5 @@
 *.bak
 *.rej
 *.orig
+npm-debug.log
 /node_modules/
