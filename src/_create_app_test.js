@@ -24,21 +24,30 @@ describe("app", function () {
     expect(state.getIn(["some", "nested"])).to.equal("values");
   });
 
-  it("should apply queries to state", function () {
-    const app = createApp({
-      initialState: {
-        some: {
-          nested: "values"
+  describe("queryState", function () {
+    it("should apply queries to state", function () {
+      const app = createApp({
+        initialState: {
+          some: {
+            nested: "values"
+          }
         }
-      }
+      });
+      const query = context => context.state.getIn(["some", "nested"]);
+      expect(app.queryState(query)).to.equal("values");
     });
-    const query = context => context.state.getIn(["some", "nested"]);
-    expect(app.queryState(query)).to.equal("values");
-  });
 
-  it("should pass argument object to query", function () {
-    const app = createApp();
-    const query = (context, args) => args.name;
-    expect(app.queryState(query, {name: "Fred"})).to.equal("Fred");
+    it("should pass argument object to query", function () {
+      const app = createApp();
+      const query = (context, args) => args.name;
+      expect(app.queryState(query, {name: "Fred"})).to.equal("Fred");
+    });
+
+    it("should pass immutable queryContext to query", function () {
+      const app = createApp();
+      app.queryState(function (context) {
+        expect(Object.isFrozen(context)).to.equal(true);
+      });
+    });
   });
 });
