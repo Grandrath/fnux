@@ -16,6 +16,14 @@ function getIntentContext(app) {
   return app.invokeIntent(context => context);
 }
 
+function makeTransition(key) {
+  return (context, args) => context.state.set(key, args[key]);
+}
+
+function makeQuery(key) {
+  return context => context.state.get(key);
+}
+
 describe("app", function () {
   it("should be immutable", function () {
     const app = createApp();
@@ -37,6 +45,7 @@ describe("app", function () {
       }
     });
     const state = getState(app);
+
     expect(state.getIn(["some", "nested"])).to.equal("values");
   });
 
@@ -50,12 +59,14 @@ describe("app", function () {
         }
       });
       const query = context => context.state.getIn(["some", "nested"]);
+
       expect(app.queryState(query)).to.equal("values");
     });
 
     it("should pass argument object to query", function () {
       const app = createApp();
       const query = (context, args) => args.name;
+
       expect(app.queryState(query, {name: "Fred"})).to.equal("Fred");
     });
 
@@ -63,6 +74,7 @@ describe("app", function () {
       it("should be immutable", function () {
         const app = createApp();
         const queryContext = getQueryContext(app);
+
         expect(isFrozen(queryContext)).to.equal(true);
       });
     });
@@ -72,12 +84,14 @@ describe("app", function () {
     it("should return the intent's return value", function () {
       const app = createApp();
       const intent = () => "some return value";
+
       expect(app.invokeIntent(intent)).to.equal("some return value");
     });
 
     it("should pass argument object to intent", function () {
       const app = createApp();
       const intent = (context, args) => args.name;
+
       expect(app.invokeIntent(intent, {name: "Fred"})).to.equal("Fred");
     });
 
@@ -85,44 +99,104 @@ describe("app", function () {
       it("should be immutable", function () {
         const app = createApp();
         const intentContext = getIntentContext(app);
+
         expect(isFrozen(intentContext)).to.equal(true);
       });
 
       describe("queryState", function () {
-        it("should be app.queryState", function () {
-          const app = createApp();
+        it("should apply queries to state", function () {
+          const app = createApp({
+            initialState: {
+              some: {
+                nested: "values"
+              }
+            }
+          });
+          const query = context => context.state.getIn(["some", "nested"]);
           const intentContext = getIntentContext(app);
-          expect(intentContext.queryState).to.equal(app.queryState);
+
+          expect(intentContext.queryState(query)).to.equal("values");
+        });
+
+        it("should pass argument object to query", function () {
+          const app = createApp();
+          const query = (context, args) => args.name;
+          const intentContext = getIntentContext(app);
+
+          expect(intentContext.queryState(query, {name: "Fred"})).to.equal("Fred");
+        });
+
+        describe("queryContext", function () {
+          it("should be immutable", function () {
+            const app = createApp();
+            const intentContext = getIntentContext(app);
+            const queryContext = getQueryContext(intentContext);
+
+            expect(isFrozen(queryContext)).to.equal(true);
+          });
         });
       });
 
       describe("updateState", function () {
-        const getValue = context => context.state.get("value");
-        const setValue = (context, {value}) => context.state.set("value", value);
-        const intent = (context, {value}) => context.updateState(setValue, {value});
+        const Person = {
+          getName: makeQuery("name"),
+          setName: makeTransition("name"),
+          getAge: makeQuery("age"),
+          setAge: makeTransition("age")
+        };
+
+        const setName = (context, {name}) => context.updateState(Person.setName, {name});
 
         it("should apply a transition to the state", function () {
           const app = createApp();
-          app.invokeIntent(intent, {value: "some value"});
-          expect(app.queryState(getValue)).to.equal("some value");
+
+          app.invokeIntent(setName, {name: "Fred"});
+
+          expect(app.queryState(Person.getName)).to.equal("Fred");
         });
 
         it("should notify subscribers when state changes", function () {
           const app = createApp();
           const subscriber = spy();
           app.subscribe(subscriber);
-          app.invokeIntent(intent, {value: "some value"});
+
+          app.invokeIntent(setName, {name: "Fred"});
+
           expect(subscriber).to.have.been.called;
+        });
+
+        it("should notify subscribers *after* state changes", function () {
+          const app = createApp();
+          app.subscribe(function () {
+            expect(app.queryState(Person.getName)).to.equal("Fred");
+          });
+
+          app.invokeIntent(setName, {name: "Fred"});
         });
 
         it("should not notify subscribers when state does not change", function () {
           const app = createApp({
-            initialState: {value: "some value"}
+            initialState: {name: "Fred"}
           });
           const subscriber = spy();
           app.subscribe(subscriber);
-          app.invokeIntent(intent, {value: "some value"});
+
+          app.invokeIntent(setName, {name: "Fred"});
+
           expect(subscriber).not.to.have.been.called;
+        });
+
+        it("should be chainable", function () {
+          const app = createApp();
+
+          app.invokeIntent(function (context) {
+            context
+              .updateState(Person.setName, {name: "Fred"})
+              .updateState(Person.setAge, {age: 42});
+          });
+
+          expect(app.queryState(Person.getName)).to.equal("Fred");
+          expect(app.queryState(Person.getAge)).to.equal(42);
         });
       });
     });

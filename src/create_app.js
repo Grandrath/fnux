@@ -24,6 +24,10 @@ export default function createApp(options = {}) {
       state = nextState;
       eventEmitter.emit(changeEvent);
     }
+
+    return {
+      updateState
+    };
   }
 
   function invokeIntent(intent, args) {
