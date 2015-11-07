@@ -47,7 +47,6 @@ export default function createApp(options = {}) {
 
   return freeze({
     subscribe,
-    queryState,
     invokeIntent
   });
 }

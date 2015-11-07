@@ -4,12 +4,16 @@ import createApp from "./create_app";
 
 const {isFrozen} = Object;
 
+function queryState(app, query, args) {
+  return app.invokeIntent(({queryState}) => queryState(query, args));
+}
+
 function getState(app) {
   return getQueryContext(app).state;
 }
 
 function getQueryContext(app) {
-  return app.queryState(context => context);
+  return getIntentContext(app).queryState(context => context);
 }
 
 function getIntentContext(app) {
@@ -47,37 +51,6 @@ describe("app", function () {
     const state = getState(app);
 
     expect(state.getIn(["some", "nested"])).to.equal("values");
-  });
-
-  describe("queryState", function () {
-    it("should apply queries to state", function () {
-      const app = createApp({
-        initialState: {
-          some: {
-            nested: "values"
-          }
-        }
-      });
-      const query = context => context.state.getIn(["some", "nested"]);
-
-      expect(app.queryState(query)).to.equal("values");
-    });
-
-    it("should pass argument object to query", function () {
-      const app = createApp();
-      const query = (context, args) => args.name;
-
-      expect(app.queryState(query, {name: "Fred"})).to.equal("Fred");
-    });
-
-    describe("queryContext", function () {
-      it("should be immutable", function () {
-        const app = createApp();
-        const queryContext = getQueryContext(app);
-
-        expect(isFrozen(queryContext)).to.equal(true);
-      });
-    });
   });
 
   describe("invokeIntent", function () {
@@ -129,8 +102,7 @@ describe("app", function () {
         describe("queryContext", function () {
           it("should be immutable", function () {
             const app = createApp();
-            const intentContext = getIntentContext(app);
-            const queryContext = getQueryContext(intentContext);
+            const queryContext = getQueryContext(app);
 
             expect(isFrozen(queryContext)).to.equal(true);
           });
@@ -152,7 +124,7 @@ describe("app", function () {
 
           app.invokeIntent(setName, {name: "Fred"});
 
-          expect(app.queryState(Person.getName)).to.equal("Fred");
+          expect(queryState(app, Person.getName)).to.equal("Fred");
         });
 
         it("should notify subscribers when state changes", function () {
@@ -168,7 +140,7 @@ describe("app", function () {
         it("should notify subscribers *after* state changes", function () {
           const app = createApp();
           app.subscribe(function () {
-            expect(app.queryState(Person.getName)).to.equal("Fred");
+            expect(queryState(app, Person.getName)).to.equal("Fred");
           });
 
           app.invokeIntent(setName, {name: "Fred"});
@@ -195,8 +167,8 @@ describe("app", function () {
               .updateState(Person.setAge, {age: 42});
           });
 
-          expect(app.queryState(Person.getName)).to.equal("Fred");
-          expect(app.queryState(Person.getAge)).to.equal(42);
+          expect(queryState(app, Person.getName)).to.equal("Fred");
+          expect(queryState(app, Person.getAge)).to.equal(42);
         });
       });
     });
