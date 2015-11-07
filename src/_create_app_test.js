@@ -224,6 +224,31 @@ describe("app", function () {
           });
         });
       });
+
+      describe("invokeService", function () {
+        it("should call the service with the given serviceContext", function () {
+          const serviceContext = {
+            some: "function with side effects"
+          };
+          const app = createApp({
+            serviceContext
+          });
+          const service = spy();
+          const intentContext = getIntentContext(app);
+
+          intentContext.invokeService(service);
+
+          expect(service).to.have.been.calledWith(serviceContext);
+        });
+
+        it("should pass argument object to service", function () {
+          const app = createApp();
+          const service = (context, args) => args.name;
+          const intentContext = getIntentContext(app);
+
+          expect(intentContext.invokeService(service, {name: "Fred"})).to.equal("Fred");
+        });
+      });
     });
   });
 });

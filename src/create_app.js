@@ -17,6 +17,7 @@ function isFunction(value) {
 export default function createApp(options = {}) {
   let state = fromJS(options.initialState || {});
 
+  const serviceContext = options.serviceContext;
   const eventEmitter = new EventEmitter();
 
   function subscribe(subscriber) {
@@ -48,6 +49,10 @@ export default function createApp(options = {}) {
     return intent(intentContext, args);
   }
 
+  function invokeService(service, args) {
+    return service(serviceContext, args);
+  }
+
   const queryContext = freeze({
     get state() {
       return state;
@@ -62,7 +67,8 @@ export default function createApp(options = {}) {
 
   const intentContext = freeze({
     queryState,
-    updateState
+    updateState,
+    invokeService
   });
 
   return freeze({
