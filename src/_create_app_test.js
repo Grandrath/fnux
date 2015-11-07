@@ -1,6 +1,6 @@
 import {spy} from "sinon";
 import {is, Map} from "immutable";
-import createApp from "./create_app";
+import createApp from "./create_app.js";
 
 const {isFrozen} = Object;
 
