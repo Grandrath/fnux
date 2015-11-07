@@ -5,9 +5,13 @@ const {freeze} = Object;
 const changeEvent = "change";
 
 function toJS(value) {
-  return value && typeof value.toJS === "function"
+  return value && isFunction(value.toJS)
     ? value.toJS()
     : value;
+}
+
+function isFunction(value) {
+  return typeof value === "function";
 }
 
 export default function createApp(options = {}) {
@@ -16,7 +20,11 @@ export default function createApp(options = {}) {
   const eventEmitter = new EventEmitter();
 
   function subscribe(subscriber) {
-    eventEmitter.on(changeEvent, subscriber);
+    eventEmitter.addListener(changeEvent, subscriber);
+
+    return function unsubscribe() {
+      eventEmitter.removeListener(changeEvent, subscriber);
+    };
   }
 
   function queryState(query, args) {

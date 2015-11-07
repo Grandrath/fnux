@@ -150,6 +150,17 @@ describe("app", function () {
           expect(subscriber).to.have.been.called;
         });
 
+        it("should not notify subscribers after unsubscribing", function () {
+          const app = createApp();
+          const subscriber = spy();
+          const unsubscribe = app.subscribe(subscriber);
+
+          unsubscribe();
+          app.invokeIntent(setName, {name: "Fred"});
+
+          expect(subscriber).not.to.have.been.called;
+        });
+
         it("should notify subscribers *after* state changes", function () {
           const app = createApp();
           app.subscribe(function () {
