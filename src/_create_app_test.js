@@ -308,5 +308,28 @@ describe("app", function () {
         expect(queryState(app, getB)).to.equal("foo");
       });
     });
+
+    describe("valueLink", function () {
+      it("should return an object that fulfills React's valueLink API", function () {
+        const app = createApp({
+          initialState: {
+            a: "foo"
+          }
+        });
+
+        const getA = makeQuery("a");
+        const setA = makeTransition("a");
+
+        const viewContext = getViewContext(app);
+        const valueLink = viewContext.valueLink(getA, setA);
+
+        expect(valueLink.value, "initial value").to.equal("foo");
+
+        valueLink.requestChange("bar");
+
+        expect(queryState(app, getA), "value in state").to.equal("bar");
+        expect(valueLink.value, "final value").to.equal("bar");
+      });
+    });
   });
 });

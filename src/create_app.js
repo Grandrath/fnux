@@ -45,6 +45,18 @@ export default function createApp(options = {}) {
     }
   }
 
+  function valueLink(query, transition) {
+    return {
+      get value() {
+        return queryState(query);
+      },
+
+      requestChange(newValue) {
+        updateState(transition, newValue);
+      }
+    };
+  }
+
   function invokeIntent(intent, args) {
     return intent(intentContext, args);
   }
@@ -73,7 +85,8 @@ export default function createApp(options = {}) {
 
   const viewContext = freeze({
     queryState,
-    invokeIntent
+    invokeIntent,
+    valueLink
   });
 
   return freeze({
