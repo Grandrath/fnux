@@ -27,6 +27,10 @@ export default function createApp(options = {}) {
     };
   }
 
+  function triggerUpdate() {
+    eventEmitter.emit(changeEvent);
+  }
+
   function queryState(query, args) {
     return toJS(query(queryContext, args));
   }
@@ -36,7 +40,7 @@ export default function createApp(options = {}) {
 
     if (!is(nextState, state)) {
       state = nextState;
-      eventEmitter.emit(changeEvent);
+      triggerUpdate();
     }
   }
 
@@ -57,6 +61,7 @@ export default function createApp(options = {}) {
 
   return freeze({
     subscribe,
+    triggerUpdate,
     invokeIntent
   });
 }

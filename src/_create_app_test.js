@@ -53,6 +53,16 @@ describe("app", function () {
     expect(state.getIn(["some", "nested"])).to.equal("values");
   });
 
+  it("should notify subscribers", function () {
+    const app = createApp();
+    const subscriber = spy();
+    app.subscribe(subscriber);
+
+    app.triggerUpdate();
+
+    expect(subscriber).to.have.been.called;
+  });
+
   describe("invokeIntent", function () {
     it("should return the intent's return value", function () {
       const app = createApp();
