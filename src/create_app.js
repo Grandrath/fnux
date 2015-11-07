@@ -1,12 +1,18 @@
 import {EventEmitter} from "events";
 import {is, fromJS} from "immutable";
 
+const {freeze} = Object;
 const changeEvent = "change";
+
+function toJS(value) {
+  return value && typeof value.toJS === "function"
+    ? value.toJS()
+    : value;
+}
 
 export default function createApp(options = {}) {
   let state = fromJS(options.initialState || {});
 
-  const {freeze} = Object;
   const eventEmitter = new EventEmitter();
 
   function subscribe(subscriber) {
@@ -14,7 +20,7 @@ export default function createApp(options = {}) {
   }
 
   function queryState(query, args) {
-    return query(queryContext, args);
+    return toJS(query(queryContext, args));
   }
 
   function updateState(transition, args) {

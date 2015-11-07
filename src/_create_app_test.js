@@ -8,7 +8,7 @@ function queryState(app, query, args) {
   return app.invokeIntent(({queryState}) => queryState(query, args));
 }
 
-function getState(app) {
+function extractState(app) {
   return getQueryContext(app).state;
 }
 
@@ -34,9 +34,9 @@ describe("app", function () {
     expect(isFrozen(app)).to.equal(true);
   });
 
-  it("should have an empty Map as initial state", function () {
+  it("should have an empty immutableJS Map as initial state", function () {
     const app = createApp();
-    const initialState = getState(app);
+    const initialState = extractState(app);
     expect(is(initialState, Map())).to.equal(true);
   });
 
@@ -48,7 +48,7 @@ describe("app", function () {
         }
       }
     });
-    const state = getState(app);
+    const state = extractState(app);
 
     expect(state.getIn(["some", "nested"])).to.equal("values");
   });
@@ -97,6 +97,19 @@ describe("app", function () {
           const intentContext = getIntentContext(app);
 
           expect(intentContext.queryState(query, {name: "Fred"})).to.equal("Fred");
+        });
+
+        it("should convert immutableJS objects to plain JS", function () {
+          const app = createApp({
+            initialState: {
+              someObject: {
+                key: "value"
+              }
+            }
+          });
+          const query = context => context.state.get("someObject");
+
+          expect(queryState(app, query)).to.deep.equal({key: "value"});
         });
 
         describe("queryContext", function () {
