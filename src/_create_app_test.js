@@ -21,7 +21,7 @@ function getIntentContext(app) {
 }
 
 function makeTransition(key) {
-  return (context, args) => context.state.set(key, args[key]);
+  return (context, args) => context.state.set(key, args);
 }
 
 function makeQuery(key) {
@@ -130,7 +130,7 @@ describe("app", function () {
           setAge: makeTransition("age")
         };
 
-        const setName = (context, {name}) => context.updateState(Person.setName, {name});
+        const setName = ({updateState}, {name}) => updateState(Person.setName, name);
 
         it("should apply a transition to the state", function () {
           const app = createApp();
@@ -169,19 +169,6 @@ describe("app", function () {
           app.invokeIntent(setName, {name: "Fred"});
 
           expect(subscriber).not.to.have.been.called;
-        });
-
-        it("should be chainable", function () {
-          const app = createApp();
-
-          app.invokeIntent(function (context) {
-            context
-              .updateState(Person.setName, {name: "Fred"})
-              .updateState(Person.setAge, {age: 42});
-          });
-
-          expect(queryState(app, Person.getName)).to.equal("Fred");
-          expect(queryState(app, Person.getAge)).to.equal(42);
         });
       });
     });
