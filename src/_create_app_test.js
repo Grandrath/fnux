@@ -31,6 +31,18 @@ function getIntentContext(app) {
   return app.invokeIntent(context => context);
 }
 
+function getViewContext(app) {
+  let viewContext;
+
+  const unsubscribe = app.subscribe(function (context) {
+    viewContext = context;
+  });
+  app.triggerUpdate();
+  unsubscribe();
+
+  return viewContext;
+}
+
 function makeTransition(key) {
   return (context, args) => context.state.set(key, args);
 }
@@ -151,12 +163,11 @@ describe("app", function () {
           setAge: makeTransition("age")
         };
 
-        const setName = ({updateState}, {name}) => updateState(Person.setName, name);
-
         it("should apply a transition to the state", function () {
           const app = createApp();
+          const intentContext = getIntentContext(app);
 
-          app.invokeIntent(setName, {name: "Fred"});
+          intentContext.updateState(Person.setName, "Fred");
 
           expect(queryState(app, Person.getName)).to.equal("Fred");
         });
@@ -164,9 +175,10 @@ describe("app", function () {
         it("should notify subscribers when state changes", function () {
           const app = createApp();
           const subscriber = spy();
+          const intentContext = getIntentContext(app);
           app.subscribe(subscriber);
 
-          app.invokeIntent(setName, {name: "Fred"});
+          intentContext.updateState(Person.setName, "Fred");
 
           expect(subscriber).to.have.been.called;
         });
@@ -175,42 +187,45 @@ describe("app", function () {
           const app = createApp();
           const subscriber = spy();
           const unsubscribe = app.subscribe(subscriber);
+          const intentContext = getIntentContext(app);
 
           unsubscribe();
-          app.invokeIntent(setName, {name: "Fred"});
+          intentContext.updateState(Person.setName, "Fred");
 
           expect(subscriber).not.to.have.been.called;
         });
 
         it("should notify subscribers *after* state changes", function () {
           const app = createApp();
+          const intentContext = getIntentContext(app);
           app.subscribe(function () {
             expect(queryState(app, Person.getName)).to.equal("Fred");
           });
 
-          app.invokeIntent(setName, {name: "Fred"});
+          intentContext.updateState(Person.setName, "Fred");
         });
 
         it("should not notify subscribers when state does not change", function () {
           const app = createApp({
             initialState: {name: "Fred"}
           });
+          const intentContext = getIntentContext(app);
           const subscriber = spy();
-          app.subscribe(subscriber);
 
-          app.invokeIntent(setName, {name: "Fred"});
+          app.subscribe(subscriber);
+          intentContext.updateState(Person.setName, "Fred");
 
           expect(subscriber).not.to.have.been.called;
         });
 
         it("should not modify the state when transition returns falsy value", function () {
           const app = createApp();
+          const intentContext = getIntentContext(app);
           const subscriber = spy();
           app.subscribe(subscriber);
 
           const transition = () => undefined;
-          const intent = ({updateState}) => updateState(transition);
-          app.invokeIntent(intent);
+          intentContext.updateState(transition);
 
           expect(subscriber).not.to.have.been.called;
         });
@@ -248,6 +263,49 @@ describe("app", function () {
 
           expect(intentContext.invokeService(service, {name: "Fred"})).to.equal("Fred");
         });
+      });
+    });
+  });
+
+  describe("viewContext", function () {
+    it("should be immutable", function () {
+      const app = createApp();
+      const viewContext = getViewContext(app);
+
+      expect(isFrozen(viewContext)).to.equal(true);
+    });
+
+    describe("queryState", function () {
+      it("should query the state", function () {
+        const app = createApp({
+          initialState: {
+            some: "value"
+          }
+        });
+        const getValue = ({state}) => state.get("some");
+        const viewContext = getViewContext(app);
+
+        expect(viewContext.queryState(getValue)).to.equal("value");
+      });
+    });
+
+    describe("invokeIntent", function () {
+      it("should invoke the given intent", function () {
+        const app = createApp({
+          initialState: {
+            a: "foo"
+          }
+        });
+
+        const getA = makeQuery("a");
+        const getB = makeQuery("b");
+        const setB = makeTransition("b");
+        const copyAtoB = ({queryState, updateState}) => updateState(setB, queryState(getA));
+
+        const viewContext = getViewContext(app);
+        viewContext.invokeIntent(copyAtoB);
+
+        expect(queryState(app, getB)).to.equal("foo");
       });
     });
   });

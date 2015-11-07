@@ -29,7 +29,7 @@ export default function createApp(options = {}) {
   }
 
   function triggerUpdate() {
-    eventEmitter.emit(changeEvent);
+    eventEmitter.emit(changeEvent, viewContext);
   }
 
   function queryState(query, args) {
@@ -69,6 +69,11 @@ export default function createApp(options = {}) {
     queryState,
     updateState,
     invokeService
+  });
+
+  const viewContext = freeze({
+    queryState,
+    invokeIntent
   });
 
   return freeze({
