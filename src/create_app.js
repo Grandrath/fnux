@@ -36,7 +36,7 @@ export default function createApp(options = {}) {
   }
 
   function updateState(transition, args) {
-    const nextState = transition({state}, args);
+    const nextState = transition(transitionContext, args);
 
     if (!is(nextState, state)) {
       state = nextState;
@@ -49,6 +49,12 @@ export default function createApp(options = {}) {
   }
 
   const queryContext = freeze({
+    get state() {
+      return state;
+    }
+  });
+
+  const transitionContext = freeze({
     get state() {
       return state;
     }

@@ -16,6 +16,17 @@ function getQueryContext(app) {
   return getIntentContext(app).queryState(context => context);
 }
 
+function getTransitionContext(app) {
+  let transitionContext;
+
+  getIntentContext(app).updateState(function (context) {
+    transitionContext = context;
+    return context.state;
+  });
+
+  return transitionContext;
+}
+
 function getIntentContext(app) {
   return app.invokeIntent(context => context);
 }
@@ -190,6 +201,15 @@ describe("app", function () {
           app.invokeIntent(setName, {name: "Fred"});
 
           expect(subscriber).not.to.have.been.called;
+        });
+
+        describe("transitionContext", function () {
+          it("should be immutable", function () {
+            const app = createApp();
+            const transitionContext = getTransitionContext(app);
+
+            expect(isFrozen(transitionContext)).to.equal(true);
+          });
         });
       });
     });
