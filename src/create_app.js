@@ -36,7 +36,7 @@ export default function createApp(options = {}) {
   }
 
   function updateState(transition, args) {
-    const nextState = transition(transitionContext, args);
+    const nextState = transition(transitionContext, args) || state;
 
     if (!is(nextState, state)) {
       state = nextState;

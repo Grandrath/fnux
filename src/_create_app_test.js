@@ -203,6 +203,18 @@ describe("app", function () {
           expect(subscriber).not.to.have.been.called;
         });
 
+        it("should not modify the state when transition returns falsy value", function () {
+          const app = createApp();
+          const subscriber = spy();
+          app.subscribe(subscriber);
+
+          const transition = () => undefined;
+          const intent = ({updateState}) => updateState(transition);
+          app.invokeIntent(intent);
+
+          expect(subscriber).not.to.have.been.called;
+        });
+
         describe("transitionContext", function () {
           it("should be immutable", function () {
             const app = createApp();
