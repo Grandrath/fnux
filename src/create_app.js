@@ -92,6 +92,7 @@ export default function createApp(options = {}) {
   return freeze({
     subscribe,
     triggerUpdate,
-    invokeIntent
+    invokeIntent,
+    viewContext
   });
 }

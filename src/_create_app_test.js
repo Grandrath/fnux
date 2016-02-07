@@ -32,15 +32,7 @@ function getIntentContext(app) {
 }
 
 function getViewContext(app) {
-  let viewContext;
-
-  const unsubscribe = app.subscribe(function (context) {
-    viewContext = context;
-  });
-  app.triggerUpdate();
-  unsubscribe();
-
-  return viewContext;
+  return app.viewContext;
 }
 
 function makeTransition(key) {
