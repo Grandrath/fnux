@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha --compilers js:babel-core/register --require build/test_init.js src",
     "test:watch": "mocha --compilers js:babel-core/register --require build/test_init.js --reporter min --watch src",
-    "build": "babel src/ --out-dir lib/",
+    "build": "babel src/ --out-dir lib/ --ignore '_*_test.js'",
     "prepublish": "npm test && npm run build"
   },
   "repository": {
